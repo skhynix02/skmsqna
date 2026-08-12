@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKMS 퀴즈 · 35</title>
+<style>
+  :root{
+    --bg:#f3f1ee;
+    --panel:#ffffff;
+    --panel-2:#f7f5f2;
+    --line:#e4dfd8;
+    --text:#2a2622;
+    --muted:#8a8377;
+    --red:#e0132b;
+    --red-dim:#fde6e9;
+    --orange:#f4801e;
+    --orange-dim:#fef0e2;
+    --good:#1f9d63;
+    --good-dim:#e6f7ef;
+    --bad:#e5484d;
+    --bad-dim:#fdecec;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 8% -10%, #fde3e3 0%, transparent 40%),
+      radial-gradient(circle at 105% 0%, #fdead0 0%, transparent 38%),
+      var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo","Segoe UI",sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 60px;
+  }
+  .app{ width:100%; max-width:680px; }
+  .eyebrow{
+    font-size:11px; letter-spacing:3px; color:var(--red);
+    font-weight:800; text-transform:uppercase; margin-bottom:6px;
+  }
+  h1{ font-size:24px; margin:0 0 4px 0; letter-spacing:-0.3px; }
+  .lead{ color:var(--muted); font-size:13.5px; margin-bottom:28px; }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:26px;
+    box-shadow:0 1px 2px rgba(40,30,20,0.04);
+  }
+
+  /* ---------- Setup screen ---------- */
+  .pool-stat{
+    display:flex; align-items:baseline; gap:8px;
+    margin-bottom:22px; padding-bottom:20px; border-bottom:1px solid var(--line);
+  }
+  .pool-stat .num{ font-family:"SFMono-Regular",Consolas,monospace; font-size:34px; font-weight:800; color:var(--red); }
+  .pool-stat .lbl{ color:var(--muted); font-size:13px; }
+  .type-split{ display:flex; gap:8px; margin-bottom:22px; }
+  .type-chip{ flex:1; border-radius:10px; padding:10px 12px; font-size:12.5px; }
+  .type-chip.tterm{ background:var(--red-dim); color:#8c0517; }
+  .type-chip.thistory{ background:var(--orange-dim); color:#8a4408; }
+  .type-chip b{ display:block; font-size:18px; font-family:"SFMono-Regular",Consolas,monospace; }
+
+  label.field-label{ display:block; font-size:13px; color:var(--muted); margin-bottom:10px; }
+  .count-row{ display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .stepper-btn{
+    width:40px; height:40px; border-radius:10px; border:1px solid var(--line);
+    background:var(--panel-2); color:var(--text); font-size:18px; cursor:pointer;
+  }
+  .stepper-btn:hover{ border-color:var(--red); color:var(--red); }
+  #countInput{
+    flex:1; text-align:center; font-family:"SFMono-Regular",Consolas,monospace;
+    font-size:20px; background:var(--panel-2); border:1px solid var(--line);
+    color:var(--text); border-radius:10px; padding:9px 6px; width:0;
+  }
+  .presets{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+  .preset-btn{
+    padding:7px 14px; border-radius:999px; border:1px solid var(--line);
+    background:transparent; color:var(--muted); font-size:12.5px; cursor:pointer;
+  }
+  .preset-btn:hover{ border-color:var(--red); color:var(--red); }
+  .preset-btn.active{ background:var(--red); border-color:var(--red); color:#fff; }
+
+  .primary-btn{
+    width:100%; padding:14px; border-radius:10px; border:none;
+    background:var(--red); color:#fff; font-size:15px; font-weight:700;
+    cursor:pointer; letter-spacing:-0.2px;
+  }
+  .primary-btn:hover{ filter:brightness(1.08); }
+  .ghost-btn{
+    padding:11px 16px; border-radius:10px; border:1px solid var(--line);
+    background:transparent; color:var(--text); font-size:13.5px; cursor:pointer;
+  }
+  .ghost-btn:hover{ border-color:var(--red); color:var(--red); }
+
+  .hint{ font-size:12px; color:var(--muted); margin-top:14px; line-height:1.7; }
+
+  /* ---------- Quiz screen ---------- */
+  .quiz-head{ display:flex; align-items:center; gap:16px; margin-bottom:22px; }
+  .wafer{ position:relative; width:56px; height:56px; flex-shrink:0; }
+  .wafer svg{ transform:rotate(-90deg); }
+  .wafer-pct{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:"SFMono-Regular",Consolas,monospace; font-size:12px; font-weight:700; color:var(--red);
+  }
+  .quiz-progress-text{ font-size:13px; color:var(--muted); }
+  .quiz-progress-text b{ color:var(--text); font-family:"SFMono-Regular",Consolas,monospace; }
+  .score-live{ margin-left:auto; font-size:12.5px; color:var(--muted); text-align:right; }
+  .score-live .ok{ color:var(--good); font-weight:700; }
+  .score-live .no{ color:var(--bad); font-weight:700; }
+
+  .cat-tag{
+    display:inline-block; font-size:10.5px; padding:3px 9px; border-radius:999px;
+    font-weight:800; margin-bottom:14px;
+  }
+  .cat-tag.tterm{ background:var(--red-dim); color:#8c0517; }
+  .cat-tag.thistory{ background:var(--orange-dim); color:#8a4408; }
+
+  .q-term{ font-size:21px; font-weight:800; margin-bottom:22px; letter-spacing:-0.2px; }
+  .q-sub{ font-size:12.5px; color:var(--muted); font-weight:400; display:block; margin-top:4px;}
+
+  .options{ display:flex; flex-direction:column; gap:10px; }
+  .opt{
+    display:flex; align-items:flex-start; gap:12px; text-align:left;
+    padding:13px 14px; border-radius:10px; border:1px solid var(--line);
+    background:var(--panel-2); color:var(--text); font-size:13.8px; line-height:1.5;
+    cursor:pointer;
+  }
+  .opt:hover:not(.locked){ border-color:var(--red); }
+  .opt .k{
+    flex-shrink:0; width:22px; height:22px; border-radius:6px; background:#eae5dd;
+    display:flex; align-items:center; justify-content:center; font-size:11.5px;
+    font-family:"SFMono-Regular",Consolas,monospace; color:var(--muted); margin-top:1px;
+  }
+  .opt.correct{ border-color:var(--good); background:var(--good-dim); }
+  .opt.correct .k{ background:var(--good); color:#fff; }
+  .opt.wrong{ border-color:var(--bad); background:var(--bad-dim); }
+  .opt.wrong .k{ background:var(--bad); color:#fff; }
+  .opt.locked{ cursor:default; }
+  .opt.dim{ opacity:0.55; }
+
+  .src-note{
+    margin-top:14px; font-size:11.5px; color:var(--muted); background:var(--panel-2);
+    border:1px dashed var(--line); border-radius:8px; padding:8px 11px; display:none;
+  }
+  .src-note.show{ display:block; }
+  .src-note b{ color:var(--text); }
+
+  .quiz-foot{ margin-top:18px; display:flex; justify-content:flex-end; min-height:44px; }
+
+  /* ---------- Result screen ---------- */
+  .result-top{ text-align:center; padding:6px 0 22px; border-bottom:1px solid var(--line); margin-bottom:22px; }
+  .result-score{ font-family:"SFMono-Regular",Consolas,monospace; font-size:44px; font-weight:800; }
+  .result-score .of{ font-size:20px; color:var(--muted); font-weight:400; }
+  .result-pct{ color:var(--red); font-size:14px; margin-top:6px; font-weight:700; }
+  .result-actions{ display:flex; gap:10px; margin-bottom:6px; flex-wrap:wrap; }
+  .result-actions > *{ flex:1; }
+
+  .review-list{ margin-top:22px; display:none; flex-direction:column; gap:10px; }
+  .review-list.open{ display:flex; }
+  .review-item{ border:1px solid var(--line); border-radius:10px; padding:13px 14px; background:var(--panel-2); }
+  .review-item .rno{ font-size:11px; color:var(--muted); font-family:"SFMono-Regular",Consolas,monospace; margin-bottom:4px; }
+  .review-item .rterm{ font-weight:800; font-size:14.5px; margin-bottom:8px; }
+  .review-row{ font-size:12.8px; line-height:1.6; margin-bottom:3px; }
+  .review-row .tag{ font-size:10.5px; padding:1px 7px; border-radius:999px; margin-right:6px; font-weight:800; }
+  .review-row.your .tag{ background:var(--bad-dim); color:#a3181c; }
+  .review-row.correct .tag{ background:var(--good-dim); color:#0f6e40; }
+  .review-row.src{ color:var(--muted); font-size:11.5px; margin-top:6px; }
+  .review-row.src .tag{ background:#eae5dd; color:#5b5548; }
+  .all-correct-msg{ text-align:center; color:var(--good); font-size:14px; padding:24px 0; }
+
+  footer.credit{ text-align:center; color:var(--muted); font-size:11px; margin-top:26px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="eyebrow">SKMS TERMINOLOGY &amp; HISTORY QUIZ</div>
+  <h1>SKMS 퀴즈</h1>
+  <div class="lead">SKMS(2020.02 개정판) 원문을 근거로 한 4지선다 퀴즈 · 용어 정의 + 개정 역사</div>
+
+  <div id="screen-setup" class="card">
+    <div class="pool-stat">
+      <div class="num">35</div>
+      <div class="lbl">개 문항이 출제 대상입니다<br>(SKMS 2020.02 원문 근거)</div>
+    </div>
+    <div class="type-split">
+      <div class="type-chip tterm"><b id="termCountLbl">19</b>용어 정의 문제</div>
+      <div class="type-chip thistory"><b id="histCountLbl">16</b>개정 역사 문제</div>
+    </div>
+
+    <label class="field-label">몇 문제를 풀까요?</label>
+    <div class="count-row">
+      <button class="stepper-btn" id="decBtn" type="button">−</button>
+      <input id="countInput" type="number" min="1" max="35" value="20">
+      <button class="stepper-btn" id="incBtn" type="button">+</button>
+    </div>
+    <div class="presets" id="presets"></div>
+
+    <button class="primary-btn" id="startBtn" type="button">퀴즈 시작</button>
+    <div class="hint">
+      · 표제어(용어 또는 개정 시기)가 주어지면 알맞은 내용을 4개의 보기 중에서 고릅니다.<br>
+      · 오답 3개는 같은 유형(용어↔용어, 역사↔역사)의 다른 문항 정답 중 무작위로 섞여 나옵니다.<br>
+      · 정답 확인 후 해당 내용의 PDF 근거(페이지·줄)가 함께 표시됩니다.<br>
+      · 다 풀고 나면 틀린 문제만 따로 모아 해설과 함께 볼 수 있어요.
+    </div>
+  </div>
+
+  <div id="screen-quiz" class="card" style="display:none;">
+    <div class="quiz-head">
+      <div class="wafer">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <circle cx="28" cy="28" r="24" fill="none" stroke="#eae5dd" stroke-width="5"/>
+          <circle id="wafer-ring" cx="28" cy="28" r="24" fill="none" stroke="#e0132b" stroke-width="5" stroke-linecap="round" stroke-dasharray="150.8" stroke-dashoffset="150.8"/>
+        </svg>
+        <div class="wafer-pct" id="waferPct">0%</div>
+      </div>
+      <div class="quiz-progress-text"><b id="qIdx">1</b> / <span id="qTotal">20</span> 문제</div>
+      <div class="score-live">정답 <span class="ok" id="liveOk">0</span> · 오답 <span class="no" id="liveNo">0</span></div>
+    </div>
+
+    <span class="cat-tag" id="catTag"></span>
+    <div class="q-term" id="qTerm">TERM<span class="q-sub">알맞은 내용을 고르세요</span></div>
+
+    <div class="options" id="optionsBox"></div>
+    <div class="src-note" id="srcNote"></div>
+    <div class="quiz-foot" id="quizFoot"></div>
+  </div>
+
+  <div id="screen-result" class="card" style="display:none;">
+    <div class="result-top">
+      <div class="result-score"><span id="resScore">0</span><span class="of" id="resOf">/ 20</span></div>
+      <div class="result-pct" id="resPct">정답률 0%</div>
+    </div>
+    <div class="result-actions">
+      <button class="ghost-btn" id="toggleReviewBtn" type="button">틀린 문제만 보기</button>
+      <button class="primary-btn" id="restartBtn" type="button">다시 풀기</button>
+    </div>
+    <div id="reviewList" class="review-list"></div>
+  </div>
+
+  <footer class="credit">SKMS(SK Management System) 2020.02 개정판 원문 기반 · 총 35문항</footer>
+</div>
+
+<script>
+const QUESTIONS = [{"type": "term", "prompt": "SUPEX", "answer": "Super Excellent Level의 줄임말로, 인간의 능력으로 도달할 수 있는 최고 수준", "source": "p.12 각주(SUPEX 정의)"}, {"type": "term", "prompt": "VWBE", "answer": "구성원 전체 행복을 지속적으로 키워 나가면 개인의 행복도 커질 수 있다는 것을 믿고 실천할 때 하게 되는 자발적(Voluntarily)·의욕적(Willingly) 두뇌활용(Brain Engagement)", "source": "p.12, 본문 1~3번째 줄"}, {"type": "term", "prompt": "CbA", "answer": "Challenging but Achievable의 줄임말로, 주어진 시간과 내·외부 가용자원을 고려하여 달성 가능한 최고 수준", "source": "p.17 각주(CbA 정의)"}, {"type": "term", "prompt": "SUPEX Company", "answer": "최고의 경쟁력을 보유하고 장기적 생존 조건을 확보하여 지속적으로 경제적 가치, 사회적 가치, 구성원 행복을 창출해 나가는 회사", "source": "p.16, 본문 1~3번째 줄"}, {"type": "term", "prompt": "Better Company", "answer": "SUPEX Company에 곧바로 도달하기 어려워 목표로 설정하는, 한 단계 높은 수준의 회사", "source": "p.16, 본문 6~8번째 줄"}, {"type": "term", "prompt": "To-be Model", "answer": "SUPEX Company Image와 Better Company 목표, 실행전략, KPI, 평가·보상, VWBE 문화 조성 등으로 구성되는 것", "source": "p.17, 본문 7~10번째 줄"}, {"type": "term", "prompt": "패기", "answer": "자발적·의욕적 두뇌활용이 외부로 발현되는 모습으로, 일과 싸워서 이기는 것", "source": "p.15, 본문 3~4번째 줄"}, {"type": "term", "prompt": "회사", "answer": "조직화된 힘을 통해 가용자원을 효과적으로 활용하여 최대한의 가치를 창출하는 공동체", "source": "p.6, 본문 4~5번째 줄"}, {"type": "term", "prompt": "SK그룹", "answer": "지분 관계 유무와 상관없이 SKMS를 근간으로 한 경영철학을 공유하고 경영활동에 상호 협력하기로 합의한 회사들로 구성되는 것", "source": "p.7, 본문 1~3번째 줄"}, {"type": "term", "prompt": "사회적 가치", "answer": "이해관계자 행복을 위해 회사가 창출하는 모든 가치", "source": "p.10, 본문 8~9번째 줄"}, {"type": "term", "prompt": "경제적 가치를 만드는 일", "answer": "회사의 본원적 활동으로, 기존 사업에 안주하지 않고 끊임없이 혁신하여 새로운 경제적 가치를 창출하는 일", "source": "p.18, 본문 1~2번째 줄"}, {"type": "term", "prompt": "사회적 가치를 만드는 일", "answer": "경제적 가치를 만드는 것에 더해 이해관계자가 기대하는 가치를 제공하는 일", "source": "p.18, 본문 8~9번째 줄"}, {"type": "term", "prompt": "우리의 행복을 만드는 일", "answer": "경제적·사회적 가치를 만드는 일과 더불어 구성원 행복 자체를 만들어가는 활동", "source": "p.18, 본문 14~15번째 줄"}, {"type": "term", "prompt": "Commitment", "answer": "경영철학에 대한 믿음·실천", "source": "p.14, 선순환 구조도(다이어그램) 내 정의"}, {"type": "term", "prompt": "'따로 또 같이' 경영", "answer": "SK그룹 각 회사가 경영 시스템과 인프라는 함께 발전시키면서, 경영활동의 전문 영역별로 협력을 추구하는 경영 방식", "source": "p.7, 본문 7~9번째 줄"}, {"type": "term", "prompt": "SKMS(선경경영관리체계)", "answer": "기업경영에 관한 본질과 방향을 정리한 경영기본이념과, 이를 실현하기 위한 구체적 기능인 경영관리요소로 구성된 체계", "source": "p.21, 본문 1~3번째 줄"}, {"type": "term", "prompt": "SK-Manship", "answer": "SKMS의 동적요소에서 정한 것으로, 경영자로서 갖추어야 할 자격요건으로 삼은 것", "source": "p.21, 본문 7~9번째 줄"}, {"type": "term", "prompt": "이해관계자", "answer": "SK가 함께 행복을 추구해야 할 대상으로, 고객·비즈니스 파트너·주주·사회로 구성됨", "source": "p.10, 본문 11~18번째 줄"}, {"type": "term", "prompt": "경영자(SKMS 실천의 주체)", "answer": "SKMS의 실천과 진화·발전에 앞장서야 하며, 특히 기업가적 대주주는 SK그룹과 경영철학을 유지·발전시키는 책임을 다해야 하는 주체", "source": "p.8, 본문 17~19번째 줄"}, {"type": "history", "prompt": "'79.03 (초판 정립)", "answer": "경영기본이념과 경영관리요소(9개 정적요소, 5개 동적요소)로 구성", "source": "p.22, SKMS 보완 내력 표 中 '79.03' 행"}, {"type": "history", "prompt": "'81.03 (1차 보완)", "answer": "인사관리 확정, 동적요소 내용 보완", "source": "p.22, SKMS 보완 내력 표 中 '81.03' 행"}, {"type": "history", "prompt": "'81.10 (2차 보완)", "answer": "인사관리 보완", "source": "p.22, SKMS 보완 내력 표 中 '81.10' 행"}, {"type": "history", "prompt": "'82.03 (3차 보완)", "answer": "인사관리 보완, 각 동적요소 정의 확정", "source": "p.22, SKMS 보완 내력 표 中 '82.03' 행"}, {"type": "history", "prompt": "'84.12 (4차 보완)", "answer": "연구개발관리 정립 등", "source": "p.22, SKMS 보완 내력 표 中 '84.12' 행"}, {"type": "history", "prompt": "'88.11 (5차 보완)", "answer": "인사관리 및 Coordination 관리 수정", "source": "p.22, SKMS 보완 내력 표 中 '88.11' 행"}, {"type": "history", "prompt": "'89.11 (6차 보완)", "answer": "Communication 및 Marketing 관리 확정 등", "source": "p.22, SKMS 보완 내력 표 中 '89.11' 행"}, {"type": "history", "prompt": "'90.11 (7차 보완, 전면 보완)", "answer": "서문, 경영기본이념, 경영관리요소 내용 수정·보완, SUPEX 추구 개념 정립", "source": "p.22, SKMS 보완 내력 표 中 '90.11' 행"}, {"type": "history", "prompt": "'95.06 (8차 보완)", "answer": "일 처리 5단계, MPR/S/T, SUPEX 추구법 확정", "source": "p.22, SKMS 보완 내력 표 中 '95.06' 행"}, {"type": "history", "prompt": "'97.03 (9차 보완)", "answer": "정보관리 정립", "source": "p.22, SKMS 보완 내력 표 中 '97.03' 행"}, {"type": "history", "prompt": "'98.01 (10차 보완)", "answer": "CI 변경에 따른 보완", "source": "p.22, SKMS 보완 내력 표 中 '98.01' 행"}, {"type": "history", "prompt": "'04.10 (11차 보완, 전면 보완)", "answer": "경영기본이념에 '이해관계자 행복 추구' 반영, 경영실행원리 신설을 통해 SK 시스템 경영의 원리 정립", "source": "p.23, SKMS 보완 내력 표 中 '04.10' 행"}, {"type": "history", "prompt": "'08.05 (12차 보완)", "answer": "그룹 개념 정립 및 행복 추구 경영 실천 방안 구체화, 경영실행원리 및 경영관리요소 보완", "source": "p.23, SKMS 보완 내력 표 中 '08.05' 행"}, {"type": "history", "prompt": "'16.10 (13차 보완, 전면 보완)", "answer": "전체 구조를 SK와 SKMS, 경영철학, 실행원리로 변경, 경영관리요소는 제외", "source": "p.23, SKMS 보완 내력 표 中 '16.10' 행"}, {"type": "history", "prompt": "'20.02 (14차 보완, 전면 보완)", "answer": "경영철학에 '구성원의 지속적 행복'을 반영하고 실행원리 구체화", "source": "p.23, SKMS 보완 내력 표 中 '20.02' 행"}, {"type": "history", "prompt": "1975년 초", "answer": "경영원칙을 제시하고, 경영기본이념과 경영관리 각 요소에 대한 정의를 체계화하도록 경영기획실에 지시함", "source": "p.20, 본문 13~15번째 줄"}];
+const TOTAL_POOL = QUESTIONS.length; // 35
+const TERM_POOL = QUESTIONS.filter(function(q){ return q.type === 'term'; });
+const HIST_POOL = QUESTIONS.filter(function(q){ return q.type === 'history'; });
+
+document.getElementById('termCountLbl').textContent = TERM_POOL.length;
+document.getElementById('histCountLbl').textContent = HIST_POOL.length;
+
+let quizQueue = [];
+let current = 0;
+let answers = [];
+let locked = false;
+
+const setupEl = document.getElementById('screen-setup');
+const quizEl  = document.getElementById('screen-quiz');
+const resultEl= document.getElementById('screen-result');
+
+const countInputEl = document.getElementById('countInput');
+const presetsBox = document.getElementById('presets');
+const PRESETS = [10, 20, 35];
+
+function renderPresets(){
+  presetsBox.innerHTML = '';
+  PRESETS.forEach(function(n){
+    const b = document.createElement('button');
+    b.className = 'preset-btn';
+    b.type = 'button';
+    b.textContent = (n === TOTAL_POOL) ? ('전체 ' + TOTAL_POOL) : (n + '문제');
+    b.addEventListener('click', function(){ countInputEl.value = n; syncPresetActive(); });
+    b.dataset.n = n;
+    presetsBox.appendChild(b);
+  });
+  syncPresetActive();
+}
+function syncPresetActive(){
+  const v = clampCount(parseInt(countInputEl.value || '0', 10));
+  Array.from(presetsBox.children).forEach(function(b){
+    b.classList.toggle('active', parseInt(b.dataset.n,10) === v);
+  });
+}
+function clampCount(v){
+  if (isNaN(v)) return 1;
+  return Math.max(1, Math.min(TOTAL_POOL, v));
+}
+document.getElementById('decBtn').addEventListener('click', function(){
+  countInputEl.value = clampCount(parseInt(countInputEl.value||'1',10) - 1);
+  syncPresetActive();
+});
+document.getElementById('incBtn').addEventListener('click', function(){
+  countInputEl.value = clampCount(parseInt(countInputEl.value||'1',10) + 1);
+  syncPresetActive();
+});
+countInputEl.addEventListener('change', function(){
+  countInputEl.value = clampCount(parseInt(countInputEl.value||'1',10));
+  syncPresetActive();
+});
+renderPresets();
+
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
+function buildQuestion(q){
+  const pool = (q.type === 'term') ? TERM_POOL : HIST_POOL;
+  const others = pool.filter(function(o){ return o.prompt !== q.prompt; });
+  const distractors = shuffle(others).slice(0, 3);
+  const options = shuffle([
+    { text: q.answer, correct: true },
+    { text: distractors[0].answer, correct: false },
+    { text: distractors[1].answer, correct: false },
+    { text: distractors[2].answer, correct: false }
+  ]);
+  return {
+    type: q.type,
+    prompt: q.prompt,
+    answer: q.answer,
+    source: q.source,
+    options: options
+  };
+}
+
+document.getElementById('startBtn').addEventListener('click', function(){
+  const n = clampCount(parseInt(countInputEl.value || '20', 10));
+  const chosen = shuffle(QUESTIONS).slice(0, n);
+  quizQueue = chosen.map(buildQuestion);
+  current = 0;
+  answers = [];
+  setupEl.style.display = 'none';
+  resultEl.style.display = 'none';
+  quizEl.style.display = 'block';
+  document.getElementById('qTotal').textContent = n;
+  renderQuestion();
+});
+
+const RING_LEN = 150.8;
+function renderQuestion(){
+  locked = false;
+  const q = quizQueue[current];
+  document.getElementById('qIdx').textContent = current + 1;
+  document.getElementById('liveOk').textContent = answers.filter(function(a){return a.isCorrect;}).length;
+  document.getElementById('liveNo').textContent = answers.filter(function(a){return !a.isCorrect;}).length;
+
+  const pct = Math.round((current) / quizQueue.length * 100);
+  document.getElementById('waferPct').textContent = pct + '%';
+  const ring = document.getElementById('wafer-ring');
+  ring.style.strokeDashoffset = RING_LEN - (RING_LEN * pct / 100);
+
+  const catTag = document.getElementById('catTag');
+  const isTerm = (q.type === 'term');
+  catTag.textContent = isTerm ? '용어 정의' : '개정 역사';
+  catTag.className = 'cat-tag ' + (isTerm ? 'tterm' : 'thistory');
+
+  document.getElementById('qTerm').innerHTML =
+    escapeHtml(q.prompt) + '<span class="q-sub">' +
+    (isTerm ? '이 용어의 뜻으로 알맞은 것을 고르세요' : '이 시기에 있었던 SKMS 개정 내용으로 알맞은 것을 고르세요') +
+    '</span>';
+
+  const box = document.getElementById('optionsBox');
+  box.innerHTML = '';
+  const keys = ['1','2','3','4'];
+  q.options.forEach(function(opt, idx){
+    const div = document.createElement('button');
+    div.className = 'opt';
+    div.type = 'button';
+    div.innerHTML = '<span class="k">' + keys[idx] + '</span><span>' + escapeHtml(opt.text) + '</span>';
+    div.addEventListener('click', function(){ selectOption(idx); });
+    box.appendChild(div);
+  });
+  document.getElementById('quizFoot').innerHTML = '';
+  const srcNote = document.getElementById('srcNote');
+  srcNote.classList.remove('show');
+  srcNote.innerHTML = '';
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function selectOption(idx){
+  if (locked) return;
+  locked = true;
+  const q = quizQueue[current];
+  const opts = Array.from(document.getElementById('optionsBox').children);
+  const chosen = q.options[idx];
+
+  opts.forEach(function(el, i){
+    el.classList.add('locked');
+    if (q.options[i].correct) el.classList.add('correct');
+    else if (i === idx) el.classList.add('wrong');
+    else el.classList.add('dim');
+  });
+
+  answers.push({
+    prompt: q.prompt,
+    type: q.type,
+    correctText: q.answer,
+    chosenText: chosen.text,
+    isCorrect: chosen.correct,
+    source: q.source
+  });
+
+  document.getElementById('liveOk').textContent = answers.filter(function(a){return a.isCorrect;}).length;
+  document.getElementById('liveNo').textContent = answers.filter(function(a){return !a.isCorrect;}).length;
+
+  const srcNote = document.getElementById('srcNote');
+  srcNote.innerHTML = '<b>근거</b> · ' + escapeHtml(q.source);
+  srcNote.classList.add('show');
+
+  const foot = document.getElementById('quizFoot');
+  const btn = document.createElement('button');
+  btn.className = 'primary-btn';
+  btn.style.width = 'auto';
+  btn.style.padding = '11px 22px';
+  btn.type = 'button';
+  btn.textContent = (current === quizQueue.length - 1) ? '결과 보기' : '다음 문제 →';
+  btn.addEventListener('click', nextQuestion);
+  foot.appendChild(btn);
+}
+
+function nextQuestion(){
+  current++;
+  if (current >= quizQueue.length){
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult(){
+  quizEl.style.display = 'none';
+  resultEl.style.display = 'block';
+  const okCount = answers.filter(function(a){return a.isCorrect;}).length;
+  const total = answers.length;
+  document.getElementById('resScore').textContent = okCount;
+  document.getElementById('resOf').textContent = '/ ' + total;
+  document.getElementById('resPct').textContent = '정답률 ' + Math.round(okCount/total*100) + '%';
+
+  const wrong = answers.filter(function(a){return !a.isCorrect;});
+  const list = document.getElementById('reviewList');
+  list.classList.remove('open');
+  document.getElementById('toggleReviewBtn').textContent = '틀린 문제만 보기 (' + wrong.length + ')';
+
+  if (wrong.length === 0){
+    list.innerHTML = '<div class="all-correct-msg">전 문항 정답입니다. 완벽해요.</div>';
+  } else {
+    list.innerHTML = wrong.map(function(w){
+      return (
+        '<div class="review-item">' +
+          '<div class="rno">' + (w.type === 'term' ? '용어' : '역사') + '</div>' +
+          '<div class="rterm">' + escapeHtml(w.prompt) + '</div>' +
+          '<div class="review-row your"><span class="tag">내가 고른 답</span>' + escapeHtml(w.chosenText) + '</div>' +
+          '<div class="review-row correct"><span class="tag">정답</span>' + escapeHtml(w.correctText) + '</div>' +
+          '<div class="review-row src"><span class="tag">근거</span>' + escapeHtml(w.source) + '</div>' +
+        '</div>'
+      );
+    }).join('');
+  }
+}
+
+document.getElementById('toggleReviewBtn').addEventListener('click', function(){
+  const list = document.getElementById('reviewList');
+  const open = list.classList.toggle('open');
+  const wrongCount = answers.filter(function(a){return !a.isCorrect;}).length;
+  document.getElementById('toggleReviewBtn').textContent =
+    (open ? '틀린 문제 숨기기' : '틀린 문제만 보기 (' + wrongCount + ')');
+});
+
+document.getElementById('restartBtn').addEventListener('click', function(){
+  resultEl.style.display = 'none';
+  setupEl.style.display = 'block';
+});
+
+document.addEventListener('keydown', function(e){
+  if (quizEl.style.display !== 'block') return;
+  if (['1','2','3','4'].includes(e.key)){
+    const idx = parseInt(e.key,10) - 1;
+    const opts = document.getElementById('optionsBox').children;
+    if (opts[idx] && !locked) selectOption(idx);
+  } else if (e.key === 'Enter'){
+    const foot = document.getElementById('quizFoot');
+    const btn = foot.querySelector('button');
+    if (btn) btn.click();
+  }
+});
+</script>
+</body>
+</html>
